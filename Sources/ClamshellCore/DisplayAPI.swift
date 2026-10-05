@@ -3,6 +3,7 @@ public typealias DisplayID = UInt32
 public protocol DisplayAPI {
     func onlineDisplays() -> [DisplayID]
     func isBuiltin(_ id: DisplayID) -> Bool
+    func isPlaceholder(_ id: DisplayID) -> Bool
     func setEnabled(_ id: DisplayID, _ enabled: Bool) -> Bool
 }
 

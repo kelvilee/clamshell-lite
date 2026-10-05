@@ -16,6 +16,11 @@ struct CGDisplayAPI: DisplayAPI {
         CGDisplayIsBuiltin(id) != 0
     }
 
+    // WindowServer adds an 'unkn'/'virt' display when no real display is left.
+    func isPlaceholder(_ id: DisplayID) -> Bool {
+        CGDisplayVendorNumber(id) == 0x756E_6B6E && CGDisplayModelNumber(id) == 0x7669_7274
+    }
+
     func setEnabled(_ id: DisplayID, _ enabled: Bool) -> Bool {
         var config: CGDisplayConfigRef?
         guard CGBeginDisplayConfiguration(&config) == .success else { return false }

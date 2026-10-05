@@ -147,3 +147,13 @@ private func make(online: [DisplayID], auto: Bool = true) -> (DisplayController,
     controller.reconcile()
     #expect(!controller.restorePending)
 }
+
+@Test func placeholderDisplayDoesNotCountAsExternal() {
+    let (controller, api, settings) = make(online: [1, 2])
+    controller.start()
+    api.placeholders = [10]
+    api.online = [10]
+    controller.reconcile()
+    #expect(api.calls.last == Call(id: 1, enabled: true))
+    #expect(!settings.disabledByUs)
+}

@@ -25,7 +25,7 @@ public final class DisplayController {
         }
         guard let builtin = settings.builtinID else { return }
 
-        let externalPresent = online.contains { !api.isBuiltin($0) }
+        let externalPresent = online.contains { !api.isBuiltin($0) && !api.isPlaceholder($0) }
         let wantEnabled = DisplayPolicy.builtinShouldBeEnabled(
             autoEnabled: settings.autoEnabled,
             externalPresent: externalPresent

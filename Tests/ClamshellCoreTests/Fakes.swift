@@ -8,6 +8,7 @@ struct Call: Equatable {
 final class FakeDisplayAPI: DisplayAPI {
     var online: [DisplayID]
     let builtin: DisplayID
+    var placeholders: Set<DisplayID> = []
     var fails = false
     var appliesButFails = false
     private(set) var calls: [Call] = []
@@ -20,6 +21,8 @@ final class FakeDisplayAPI: DisplayAPI {
     func onlineDisplays() -> [DisplayID] { online }
 
     func isBuiltin(_ id: DisplayID) -> Bool { id == builtin }
+
+    func isPlaceholder(_ id: DisplayID) -> Bool { placeholders.contains(id) }
 
     func setEnabled(_ id: DisplayID, _ enabled: Bool) -> Bool {
         calls.append(Call(id: id, enabled: enabled))
