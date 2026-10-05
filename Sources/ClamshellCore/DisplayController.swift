@@ -2,6 +2,7 @@ public final class DisplayController {
     private let api: DisplayAPI
     private let settings: ControllerSettings
     public private(set) var lastError: String?
+    public private(set) var restorePending = false
 
     public init(api: DisplayAPI, settings: ControllerSettings) {
         self.api = api
@@ -17,6 +18,7 @@ public final class DisplayController {
     }
 
     public func reconcile() {
+        restorePending = false
         let online = api.onlineDisplays()
         if let id = online.first(where: api.isBuiltin) {
             settings.builtinID = id
@@ -30,7 +32,10 @@ public final class DisplayController {
         )
 
         if !wantEnabled && online.contains(builtin) {
-            if apply(builtin, false) { settings.disabledByUs = true }
+            settings.disabledByUs = true
+            if !apply(builtin, false) && api.onlineDisplays().contains(builtin) {
+                settings.disabledByUs = false
+            }
         } else if wantEnabled {
             restoreBuiltin()
         }
@@ -44,7 +49,8 @@ public final class DisplayController {
     public func restore() {
         settings.autoEnabled = false
         guard let id = settings.builtinID else { return }
-        if apply(id, true) { settings.disabledByUs = false }
+        restorePending = !apply(id, true)
+        if !restorePending { settings.disabledByUs = false }
     }
 
     public func shutdown() {
@@ -53,7 +59,8 @@ public final class DisplayController {
 
     private func restoreBuiltin() {
         guard settings.disabledByUs, let id = settings.builtinID else { return }
-        if apply(id, true) { settings.disabledByUs = false }
+        restorePending = !apply(id, true)
+        if !restorePending { settings.disabledByUs = false }
     }
 
     private func apply(_ id: DisplayID, _ enabled: Bool) -> Bool {

@@ -12,6 +12,7 @@ final class AppModel: ObservableObject {
     private let controller = DisplayController(api: CGDisplayAPI(), settings: UserDefaultsSettings())
     private var events: DisplayEvents?
     private var sigterm: DispatchSourceSignal?
+    private var restoreRetries = 0
 
     func start() {
         controller.start()
@@ -63,5 +64,16 @@ final class AppModel: ObservableObject {
         autoEnabled = controller.autoEnabled
         builtinOff = controller.builtinDisabled
         lastError = controller.lastError
+        scheduleRestoreRetry()
+    }
+
+    private func scheduleRestoreRetry() {
+        guard controller.restorePending else {
+            restoreRetries = 0
+            return
+        }
+        guard restoreRetries < 10 else { return }
+        restoreRetries += 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.reconcile() }
     }
 }

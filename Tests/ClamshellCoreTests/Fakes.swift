@@ -9,6 +9,7 @@ final class FakeDisplayAPI: DisplayAPI {
     var online: [DisplayID]
     let builtin: DisplayID
     var fails = false
+    var appliesButFails = false
     private(set) var calls: [Call] = []
 
     init(online: [DisplayID], builtin: DisplayID = 1) {
@@ -28,7 +29,7 @@ final class FakeDisplayAPI: DisplayAPI {
         } else {
             online.removeAll { $0 == id }
         }
-        return true
+        return !appliesButFails
     }
 }
 

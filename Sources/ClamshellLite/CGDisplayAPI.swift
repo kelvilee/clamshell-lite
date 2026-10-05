@@ -23,6 +23,6 @@ struct CGDisplayAPI: DisplayAPI {
             CGCancelDisplayConfiguration(config)
             return false
         }
-        return CGCompleteDisplayConfiguration(config, .permanently) == .success
+        return CGCompleteDisplayConfiguration(config, .forSession) == .success
     }
 }

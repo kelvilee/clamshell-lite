@@ -124,3 +124,26 @@ private func make(online: [DisplayID], auto: Bool = true) -> (DisplayController,
     #expect(!settings.disabledByUs)
     #expect(controller.lastError == nil)
 }
+
+@Test func disableThatReportsFailureButTookEffectIsStillRestored() {
+    let (controller, api, settings) = make(online: [1, 2])
+    api.appliesButFails = true
+    controller.start()
+    #expect(settings.disabledByUs)
+    api.appliesButFails = false
+    controller.shutdown()
+    #expect(api.online.contains(1))
+}
+
+@Test func failedRestoreSetsRestorePendingUntilItSucceeds() {
+    let (controller, api, _) = make(online: [1, 2])
+    controller.start()
+    #expect(!controller.restorePending)
+    api.online = []
+    api.fails = true
+    controller.reconcile()
+    #expect(controller.restorePending)
+    api.fails = false
+    controller.reconcile()
+    #expect(!controller.restorePending)
+}
