@@ -1,4 +1,8 @@
+<p align="center"><img src=".github/icon.png" width="128" alt="ClamshellLite icon"></p>
+
 # ClamshellLite
+
+[![CI](https://github.com/kelvilee/clamshell-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/kelvilee/clamshell-lite/actions/workflows/ci.yml)
 
 ClamshellLite is a menu bar app for MacBooks. When you connect an external display, the app turns off the built-in display. The lid stays open. Windows, the Dock, and the cursor move to the external display. When you disconnect the last external display, the app turns the built-in display on again.
 
@@ -118,6 +122,9 @@ open /Applications/ClamshellLite.app
 - The app uses a private macOS function (`CGSConfigureDisplayEnabled`). A future macOS update can stop it from working. The app is not available in the App Store for this reason.
 - The app counts Sidecar (iPad), AirPlay, and virtual displays as external displays.
 - The app does not close the lid or prevent sleep. For lid-closed use, macOS clamshell mode needs a power adapter, an external display, and a keyboard.
+- The app is tested on Apple Silicon only.
+
+Use the app at your own risk. The software has no warranty. Read [LICENSE](LICENSE) for the full terms.
 
 ## Development
 
@@ -126,4 +133,21 @@ Run the tests:
 ```sh
 swift test
 ```
+
+Project layout:
+
+| Path | Contents |
+|---|---|
+| `Sources/ClamshellCore` | The decision logic. It has no macOS dependencies, so the unit tests can use fakes. |
+| `Sources/ClamshellLite` | The menu bar app and the CoreGraphics calls. |
+| `Tests/ClamshellCoreTests` | Unit tests for `ClamshellCore`. |
+| `Icon/make-icon.swift` | Draws the app icon. `build.sh` runs it. |
+
+## Contributing
+
+Bug reports and pull requests are welcome. For a bug report, include your Mac model, your macOS version, and the steps that cause the bug. For a pull request, make sure that `swift test` passes.
+
+## License
+
+ClamshellLite is available under the [MIT License](LICENSE).
 
