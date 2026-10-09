@@ -1,3 +1,4 @@
+import AppKit
 import ClamshellCore
 import Foundation
 import ServiceManagement
@@ -13,10 +14,18 @@ final class AppModel: ObservableObject {
     private var events: DisplayEvents?
     private var sigterm: DispatchSourceSignal?
     private var restoreRetries = 0
+    private var pendingWake: DispatchWorkItem?
 
     func start() {
         controller.start()
         events = DisplayEvents { [weak self] in self?.reconcile() }
+        let center = NSWorkspace.shared.notificationCenter
+        center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.prepareForSleep() }
+        }
+        center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.scheduleWake() }
+        }
         signal(SIGTERM, SIG_IGN)
         let source = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
         source.setEventHandler { [weak self] in
@@ -41,6 +50,22 @@ final class AppModel: ObservableObject {
     func restore() {
         controller.restore()
         refresh()
+    }
+
+    private func prepareForSleep() {
+        pendingWake?.cancel()
+        controller.prepareForSleep()
+        refresh()
+    }
+
+    private func scheduleWake() {
+        pendingWake?.cancel()
+        let item = DispatchWorkItem { [weak self] in
+            self?.controller.handleWake()
+            self?.refresh()
+        }
+        pendingWake = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: item)
     }
 
     func shutdown() {

@@ -157,3 +157,38 @@ private func make(online: [DisplayID], auto: Bool = true) -> (DisplayController,
     #expect(api.calls.last == Call(id: 1, enabled: true))
     #expect(!settings.disabledByUs)
 }
+
+@Test func sleepRestoresBuiltinAndKeepsAuto() {
+    let (controller, api, settings) = make(online: [1, 2])
+    controller.start()
+    controller.prepareForSleep()
+    #expect(api.calls.last == Call(id: 1, enabled: true))
+    #expect(!settings.disabledByUs)
+    #expect(settings.autoEnabled)
+}
+
+@Test func reconcileWhileAsleepMakesNoCalls() {
+    let (controller, api, _) = make(online: [1, 2])
+    controller.start()
+    controller.prepareForSleep()
+    controller.reconcile()
+    #expect(api.calls.count == 2)
+}
+
+@Test func wakeDisablesBuiltinWhenExternalStillConnected() {
+    let (controller, api, settings) = make(online: [1, 2])
+    controller.start()
+    controller.prepareForSleep()
+    controller.handleWake()
+    #expect(api.calls == [Call(id: 1, enabled: false), Call(id: 1, enabled: true), Call(id: 1, enabled: false)])
+    #expect(settings.disabledByUs)
+}
+
+@Test func wakeLeavesBuiltinOnWhenExternalRemovedDuringSleep() {
+    let (controller, api, _) = make(online: [1, 2])
+    controller.start()
+    controller.prepareForSleep()
+    api.online = [1]
+    controller.handleWake()
+    #expect(api.calls.count == 2)
+}

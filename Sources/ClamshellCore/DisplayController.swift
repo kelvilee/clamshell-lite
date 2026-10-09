@@ -3,6 +3,7 @@ public final class DisplayController {
     private let settings: ControllerSettings
     public private(set) var lastError: String?
     public private(set) var restorePending = false
+    private var asleep = false
 
     public init(api: DisplayAPI, settings: ControllerSettings) {
         self.api = api
@@ -18,6 +19,7 @@ public final class DisplayController {
     }
 
     public func reconcile() {
+        guard !asleep else { return }
         restorePending = false
         let online = api.onlineDisplays()
         if let id = online.first(where: api.isBuiltin) {
@@ -51,6 +53,16 @@ public final class DisplayController {
         guard let id = settings.builtinID else { return }
         restorePending = !apply(id, true)
         if !restorePending { settings.disabledByUs = false }
+    }
+
+    public func prepareForSleep() {
+        asleep = true
+        restoreBuiltin()
+    }
+
+    public func handleWake() {
+        asleep = false
+        reconcile()
     }
 
     public func shutdown() {
